@@ -1,7 +1,7 @@
 const express = require('express')
 const app = express()
 const cors = require('cors')
-// const jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 require('dotenv').config()
 const port = process.env.PORT || 5000
 
@@ -26,58 +26,60 @@ async function run() {
     await client.connect();
 
     const allcoursesCollection = client.db("learnHubDb").collection("courses");
-    // const usersCollectyion = client.db("bistroDb").collection("users");
+    const uploadCoursesCollection = client.db("learnHubDb").collection("uploadcourse");
+    const enrollCoursesCollection = client.db("learnHubDb").collection("enroll");
+    const usersCollection = client.db("learnHubDb").collection("users");
     // const reviwesCollectyion = client.db("bistroDb").collection("reviews");
     // const cartCollectyion = client.db("bistroDb").collection("carts");
 
 
     
-//     // / **** Jwt Releted  api ****************
-//     app.post('/jwt' , async(req,res)=>{
-//       const user = req.body;
-//       const token=jwt.sign(user, process.env.ACCESS_TOKEN, {expiresIn:'1h'});
-//       res.send({ token });
-//     })
+    // / **** Jwt Releted  api ****************
+    app.post('/jwt' , async(req,res)=>{
+      const user = req.body;
+      const token=jwt.sign(user, process.env.ACCESS_TOKEN, {expiresIn:'1h'});
+      res.send({ token });
+    })
 
-//     // / **** verify token middaleware ****************
-//     const verifyToken = (req, res,next)=>{
-//       // console.log( 'inside veri',req.headers.authorization);
-//       if (!req.headers.authorization) {
-//         return res.status(401).send({message: 'forbidden access '})
+    // / **** verify token middaleware ****************
+    const verifyToken = (req, res,next)=>{
+      console.log( 'inside veri',req.headers.authorization);
+      if (!req.headers.authorization) {
+        return res.status(401).send({message: 'forbidden access '})
         
-//       }
-//       const token = req.headers.authorization.split(' ')[1];
-//       jwt.verify(token, process.env.ACCESS_TOKEN, (err, decode)=>{
-//         if (err) {
-//           return res.status(401).send({message: 'forbidden access '})
-//         }
-//         req.decode=decode;
-//         next();
-//       })
+      }
+      const token = req.headers.authorization.split(' ')[1];
+      jwt.verify(token, process.env.ACCESS_TOKEN, (err, decode)=>{
+        if (err) {
+          return res.status(401).send({message: 'forbidden access '})
+        }
+        req.decode=decode;
+        next();
+      })
 
-//     }
+    }
 
-//     const verifyAdmin = async(req,res,next)=>{
-//       const email = req.decode.email;
-//       // console.log(email);
-//       const query = {email : email};
-//       const user = await usersCollectyion.findOne(query);
-//       const isAdmin= user?.role == 'admin'
-//       if (!isAdmin) {
-//        return res.status(403).send({message : 'unauthorized access'})
-//       }
-//       next();
-//     }
+    const verifyAdmin = async(req,res,next)=>{
+      const email = req.decode.email;
+      // console.log(email);
+      const query = {email : email};
+      const user = await usersCollection.findOne(query);
+      const isAdmin= user?.role == 'admin'
+      if (!isAdmin) {
+       return res.status(403).send({message : 'unauthorized access'})
+      }
+      next();
+    }
 
 
 
-//     app.get('/users', verifyToken,verifyAdmin ,async(req,res)=>{
-//       try {
-//           const result = await usersCollectyion.find().toArray()
-//            res.send(result)
-//           } catch (error) {
-//           console.log(error);}
-//   })
+    app.get('/users',verifyToken,verifyAdmin,async(req,res)=>{
+      try {
+          const result = await usersCollection.find().toArray()
+           res.send(result)
+          } catch (error) {
+          console.log(error);}
+  })
 
 //   app.get('/users/admin/:email',verifyToken, async(req,res)=>{
 //     const email = req.params.email;
@@ -108,6 +110,35 @@ async function run() {
             console.log(error);}})
 
 
+            app.get('/enroll', async(req,res)=>{
+              try {
+                  const email = req.query.email;
+                  // console.log(email);
+                  const query = {email : email};
+                  // console.log(query);
+                
+                  const result =await enrollCoursesCollection.find(query).toArray();
+                  // console.log(result);
+                  res.send(result)
+              } catch (error) { console.log(error); }})
+    
+
+    //     try {
+    //         // const 
+    //         // const email = req.params.email;
+    //         // console.log(email);
+
+    //         // const query = {email : email};
+    //         // console.log(query);
+    
+
+    //         const result = await enrollCoursesCollection.find().toArray();
+    //         res.send(result)
+    //     } catch (error) {
+    //         console.log(error);}})
+    
+
+
 
 
 
@@ -134,48 +165,69 @@ async function run() {
 //     // / **** Get Operation End ****************
 
 
-//     // / **** Delete Operation Start ****************
+//    
 
-// app.post('/cart', async(req , res)=>{
-//    try {
-//     const cartItem = req.body;
-//     const result = await cartCollectyion.insertOne(cartItem)
-//     res.send(result)
-//    } catch (error) {
-//     console.log(error);
-//    }})
+app.post('/uploadCourse', async(req , res)=>{
+   try {
+    const course = req.body;
+    const result = await uploadCoursesCollection.insertOne(course)
+    res.send(result)
+   } catch (error) {
+    console.log(error);
+   }})
+
+app.post('/enroll', async(req , res)=>{
+   try {
+    const enrollCourse = req.body;
+    const id = req.body._id;
+    const query = {_id : id }
+    // console.log(query);
+    const isexist = await enrollCoursesCollection.findOne(query)
+    if (isexist) {
+        return res.send('User Already Exist')
+    }
+   
+    const result = await enrollCoursesCollection.insertOne(enrollCourse)
+    res.send(result)
+   } catch (error) {
+    console.log(error);
+   }})
    
 
-//    app.post('/users', async(req,res)=>{
-// try {
-//     const user = req.body;
-//     const query = {email : user.email}
-//     const existingUser = await usersCollectyion.findOne(query)
-//     if (existingUser) {
-//         return res.send('User Already Exist')
-//     }
-//     const result = await usersCollectyion.insertOne(user)
-//     res.send(result)
-// } catch (error) {
-//    console.log(error); 
-// }
-//    })
+   app.post('/users', async(req,res)=>{
+try {
+    const user = req.body;
+    console.log(user);
+    const query = {email : user.email}
+    console.log(query);
+    const existingUser = await usersCollection.findOne(query)
+    if (existingUser) {
+        return res.send('User Already Exist')
+    }
+    const result = await usersCollection.insertOne(user)
+    res.send(result)
+} catch (error) {
+   console.log(error); 
+}
+   })
 // // /****** Post Operation End ****************
 
 //  // / **** Delete Operation Start ****************
-//    app.delete('/cart/:_id' , async(req,res)=>{
-//   try {
-//     const id = req.params._id;
-//     // console.log(id);
-//     const query = {_id: new ObjectId(id)}
-//     // console.log(query);
-//     const result = await cartCollectyion.deleteOne(query)
-//     res.send(result)
-//   } catch (error) {
-//     console.log(error);
-//   }
+   app.delete('/enroll/:_id' , async(req,res)=>{
+  try {
+    const id = req.params._id;
+    console.log(id);
+    const query = {_id: new ObjectId (id)}
+    console.log(query);
+    const result = await enrollCoursesCollection.deleteOne(query)
+    res.send(result)
+  } catch (error) {
+    console.log(error);
+  }
 
-//    })
+   })
+
+
 
 
 //    app.delete('/users/:_id',verifyToken,verifyAdmin, async(req,res)=>{
