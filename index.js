@@ -29,6 +29,9 @@ async function run() {
     const uploadCoursesCollection = client.db("learnHubDb").collection("uploadcourse");
     const enrollCoursesCollection = client.db("learnHubDb").collection("enroll");
     const usersCollection = client.db("learnHubDb").collection("users");
+    const enrollMentCollection = client.db("learnHubDb").collection("enrollment");
+    const assignmentCollection = client.db("learnHubDb").collection("assignment");
+    const feedbackCollection = client.db("learnHubDb").collection("feedback");
     // const reviwesCollectyion = client.db("bistroDb").collection("reviews");
     // const cartCollectyion = client.db("bistroDb").collection("carts");
 
@@ -81,21 +84,21 @@ async function run() {
           console.log(error);}
   })
 
-//   app.get('/users/admin/:email',verifyToken, async(req,res)=>{
-//     const email = req.params.email;
-//     if (email !== req.decode.email) {
-//       return res.status(403).send({message: 'aunauthgrized '})
-//     }
-//     const query = {email : email}
-//     const user = await usersCollectyion.findOne(query);
-//     let admin = false;
-//     if (user) {
-//       admin=user.role === 'admin'
+  app.get('/users/admin/:email',verifyToken, async(req,res)=>{
+    const email = req.params.email;
+    if (email !== req.decode.email) {
+      return res.status(403).send({message: 'aunauthgrized '})
+    }
+    const query = {email : email}
+    const user = await usersCollection.findOne(query);
+    let admin = false;
+    if (user) {
+      admin=user.role === 'admin'
       
-//     }
-//     res.send({ admin });
+    }
+    res.send({ admin });
 
-//   })
+  })
 
 
 
@@ -109,6 +112,16 @@ async function run() {
         } catch (error) {
             console.log(error);}})
 
+    app.get('/enrollment' , async(req , res)=>{
+        try {
+          const email = req.query.email;
+                  // console.log(email);
+                  const query = {email : email};
+            const result = await enrollMentCollection.find(query).toArray();
+            res.send(result)
+        } catch (error) {
+            console.log(error);}})
+
 
             app.get('/enroll', async(req,res)=>{
               try {
@@ -118,6 +131,42 @@ async function run() {
                   // console.log(query);
                 
                   const result =await enrollCoursesCollection.find(query).toArray();
+                  // console.log(result);
+                  res.send(result)
+              } catch (error) { console.log(error); }})
+
+            app.get('/assighnment', async(req,res)=>{
+              try {
+                  const email = req.query.email;
+                  // console.log(email);
+                  const query = {email : email};
+                  // console.log(query);
+                
+                  const result =await assignmentCollection.find(query).toArray();
+                  // console.log(result);
+                  res.send(result)
+              } catch (error) { console.log(error); }})
+
+            app.get('/feedback', async(req,res)=>{
+              try {
+                  const email = req.query.email;
+                  // console.log(email);
+                  const query = {email : email};
+                  // console.log(query);
+                
+                  const result =await feedbackCollection.find(query).toArray();
+                  // console.log(result);
+                  res.send(result)
+              } catch (error) { console.log(error); }})
+
+            app.get('/uploadCourse', async(req,res)=>{
+              try {
+                  const email = req.query.email;
+                  // console.log(email);
+                  const query = {email : email};
+                  // console.log(query);
+                
+                  const result =await uploadCoursesCollection.find(query).toArray();
                   // console.log(result);
                   res.send(result)
               } catch (error) { console.log(error); }})
@@ -171,6 +220,27 @@ app.post('/uploadCourse', async(req , res)=>{
    try {
     const course = req.body;
     const result = await uploadCoursesCollection.insertOne(course)
+    res.send(result)
+   } catch (error) {
+    console.log(error);
+   }})
+
+app.post('/assignment', async(req , res)=>{
+   try {
+    const assighnment = req.body;
+    const result = await assignmentCollection.insertOne(assighnment)
+    res.send(result)
+   } catch (error) {
+    console.log(error);
+   }})
+app.post('/feedback', async(req , res)=>{
+   try {
+    const feedback = req.body;
+
+   
+   
+  
+    const result = await feedbackCollection.insertOne(feedback)
     res.send(result)
    } catch (error) {
     console.log(error);
@@ -230,28 +300,28 @@ try {
 
 
 
-//    app.delete('/users/:_id',verifyToken,verifyAdmin, async(req,res)=>{
-//     const id = req.params._id;
-//     const query = {_id : new ObjectId(id)}
-//     const result = await usersCollectyion.deleteOne(query)
-//     res.send(result)
-//    })
+   app.delete('/users/:_id',verifyToken,verifyAdmin, async(req,res)=>{
+    const id = req.params._id;
+    const query = {_id : new ObjectId(id)}
+    const result = await usersCollection.deleteOne(query)
+    res.send(result)
+   })
 
 
 // // / **** Delete Operation end ****************
 
 // // / **** Patch Operation Start ****************
-// app.patch('/users/admin/:_id',verifyToken,verifyAdmin, async(req ,res)=>{
-//     const id = req.params._id;
-//     const filter = {_id : new ObjectId(id)};
-//     const updatedDoc = {
-//          $set:{
-//             role:'admin'
-//          }
-//     }
-//     const result = await usersCollectyion.updateOne(filter, updatedDoc)
-//     res.send(result)
-// })
+app.patch('/users/admin/:_id',verifyToken,verifyAdmin, async(req ,res)=>{
+    const id = req.params._id;
+    const filter = {_id : new ObjectId(id)};
+    const updatedDoc = {
+         $set:{
+            role:'teacher'
+         }
+    }
+    const result = await usersCollection.updateOne(filter, updatedDoc)
+    res.send(result)
+})
      
 
 
