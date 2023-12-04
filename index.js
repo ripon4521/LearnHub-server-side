@@ -76,7 +76,7 @@ async function run() {
 
 
 
-    app.get('/users',verifyToken,verifyAdmin,async(req,res)=>{
+    app.get('/users',async(req,res)=>{
       try {
           const result = await usersCollection.find().toArray()
            res.send(result)
@@ -135,6 +135,16 @@ async function run() {
                   res.send(result)
               } catch (error) { console.log(error); }})
 
+            app.get('/sales', async(req,res)=>{
+              try {
+                 
+                
+                  const result =await enrollCoursesCollection.find().toArray();
+                  // console.log(result);
+                  res.send(result)
+              } catch (error) { console.log(error); }})
+
+
             app.get('/assighnment', async(req,res)=>{
               try {
                   const email = req.query.email;
@@ -149,13 +159,10 @@ async function run() {
 
             app.get('/feedback', async(req,res)=>{
               try {
-                  const email = req.query.email;
-                  // console.log(email);
-                  const query = {email : email};
-                  // console.log(query);
+                 
                 
-                  const result =await feedbackCollection.find(query).toArray();
-                  // console.log(result);
+                  const result =await feedbackCollection.find().toArray();
+                ;
                   res.send(result)
               } catch (error) { console.log(error); }})
 
@@ -168,6 +175,13 @@ async function run() {
                 
                   const result =await uploadCoursesCollection.find(query).toArray();
                   // console.log(result);
+                  res.send(result)
+              } catch (error) { console.log(error); }})
+
+
+            app.get('/teacherReq', async(req,res)=>{
+              try {
+                 const result =await uploadCoursesCollection.find().toArray();
                   res.send(result)
               } catch (error) { console.log(error); }})
     
@@ -220,6 +234,15 @@ app.post('/uploadCourse', async(req , res)=>{
    try {
     const course = req.body;
     const result = await uploadCoursesCollection.insertOne(course)
+    res.send(result)
+   } catch (error) {
+    console.log(error);
+   }})
+
+app.post('/courses', async(req , res)=>{
+   try {
+    const course = req.body;
+    const result = await allcoursesCollection.insertOne(course)
     res.send(result)
    } catch (error) {
     console.log(error);
@@ -290,6 +313,33 @@ try {
     const query = {_id: new ObjectId (id)}
     console.log(query);
     const result = await enrollCoursesCollection.deleteOne(query)
+    res.send(result)
+  } catch (error) {
+    console.log(error);
+  }
+
+   })
+
+   app.delete('/courses/:_id' , async(req,res)=>{
+  try {
+    const id = req.params._id;
+    console.log(id);
+    const query = {_id: new ObjectId (id)}
+    console.log(query);
+    const result = await allcoursesCollection.deleteOne(query)
+    res.send(result)
+  } catch (error) {
+    console.log(error);
+  }
+
+   })
+   app.delete('/teacherReq/:_id' , async(req,res)=>{
+  try {
+    const id = req.params._id;
+    console.log(id);
+    const query = {_id: new ObjectId (id)}
+    console.log(query);
+    const result = await uploadCoursesCollection.deleteOne(query)
     res.send(result)
   } catch (error) {
     console.log(error);
